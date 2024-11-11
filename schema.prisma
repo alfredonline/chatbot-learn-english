@@ -1,0 +1,72 @@
+datasource db {
+  provider  = "postgresql"
+  url  	    = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model User {
+    id      String  @id @default(uuid())
+    email   String  @unique
+    name    String 
+    createdAt DateTime @default(now()) @map("created_at")
+    weaknesses  String[]  @map("weak_areas")
+    conversations  Conversation[]
+    quizzes Quiz[]
+    @@map("users")
+}
+
+model Conversation {
+    id  String @id @default(uuid())
+    createdAt DateTime @default(now()) @map("created_at")
+    userId  String
+    user User @relation(fields: [userId], references: [id])
+    message   Message[]
+    @@map("conversations")
+}
+
+model Message {
+    id String @id @default(uuid())
+    content   String
+    createdAt DateTime @default(now()) @map("created_at")
+    conversationId String
+    conversation Conversation @relation(fields: [conversationId], references:[id])
+    role String 
+    improvements Correction?
+    @@map("messages")
+}
+
+model Correction {
+    id String @id @default(cuid())
+    original String 
+    corrected String
+    focus String
+    messageId String @unique
+    message Message @relation(fields: [messageId], references: [id])
+}
+
+model Quiz {
+    id String @id @default(cuid())
+    userId String 
+    user User @relation(fields: [userId], references: [id])
+    topic String @default("")
+    questions Question[]
+}
+
+model Question {
+    id String @id @default(cuid())
+    text String
+    quizId String
+    quiz Quiz @relation(fields: [quizId], references: [id])
+    answers Answer[]
+}
+
+model Answer {
+    id String @id @default(cuid())
+    text String 
+    questionId String
+    question Question @relation(fields: [questionId], references: [id])
+    correct Boolean
+}
